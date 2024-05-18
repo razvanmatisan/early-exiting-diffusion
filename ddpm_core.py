@@ -113,7 +113,7 @@ class NoiseScheduler:
         num_samples,
         seed,
         model_type,
-        benchmarking,
+        benchmarking=False,
         time_frequency=None,
         space_frequency=None,
         coordinates=None,
@@ -155,14 +155,20 @@ class NoiseScheduler:
                     )
                     eps = model(x_t, time_tensor)
                 elif model_type == "deediff_uvit":
+                    model.train()
                     t_normalized = t / num_steps
                     time_tensor = torch.tensor([t_normalized], device=device).repeat(
                         num_samples
                     )
+
                     model_output = model(x_t, time_tensor)
                     eps = model_output[0]
                     logging_dict["classifier_outputs"].append(model_output[1])
-                    logging_dict["early_exit_layers"].append((t, model_output[2]))
+
+                    if not model.training:
+                        logging_dict["early_exit_layers"].append((t, model_output[2]))
+                    else:
+                        logging_dict["outputs"].append(model_output[2])
 
                 # [Optional] Step 2.6: Benchmarking
                 if benchmarking:
@@ -191,12 +197,29 @@ class NoiseScheduler:
                     self.sigma_squared()[t : t + 1], x_t.shape
                 ).to(device)
                 sigma_t = torch.sqrt(sigma_squared_t)
+
+                lmbd = 0 if t == 0 else 1
                 x_t_minus_1 = (
                     torch.sqrt(1 / alpha_t)
                     * (x_t - (1 - alpha_t) / (torch.sqrt(1 - alpha_bar_t)) * eps)
-                ) + sigma_t * z
+                ) + lmbd * sigma_t * z
+
+                if model.training:
+                    denoised_images = []
+                    for noise in logging_dict["outputs"][-1]:
+                        denoised_image = (
+                            torch.sqrt(1 / alpha_t)
+                            * (
+                                x_t
+                                - (1 - alpha_t) / (torch.sqrt(1 - alpha_bar_t)) * noise
+                            )
+                        ) + lmbd * sigma_t * z
+
+                        denoised_images.append(denoised_image)
+                    logging_dict["denoised_images"].append(denoised_images)
                 # Update x_t for the next iteration
                 x_t = x_t_minus_1
+                logging_dict["samples_over_time"].append(x_t)
             # Step 6: Return the batch of generated samples
 
             model.train()

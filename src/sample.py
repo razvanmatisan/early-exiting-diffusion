@@ -1,10 +1,9 @@
 import argparse
 
 import torch
-from torch.utils.tensorboard import SummaryWriter
-
 from models.early_exit import EarlyExitUViT
 from models.uvit import UViT
+from torch.utils.tensorboard import SummaryWriter
 from utils.train_utils import (
     get_noise_scheduler,
     seed_everything,
@@ -174,13 +173,25 @@ if __name__ == "__main__":
         # else:
         #     exit_layer = len(outputs_t)
 
-        exit_layer = 13 if len(outputs_t) == 13 and torch.any(outputs_t[-1] > args.exit_threshold) else len(outputs_t)
+        exit_layer = (
+            13
+            if len(outputs_t) == 13 and torch.any(outputs_t[-1] > args.exit_threshold)
+            else len(outputs_t)
+        )
         writer.add_scalar("early_exit_layers", exit_layer, timestep)
         for layer in range(exit_layer):
-            writer.add_scalar(f"UEM Classifier output at layer {layer} wrt time", outputs_t[layer].mean(), timestep)
+            writer.add_scalar(
+                f"UEM Classifier output at layer {layer} wrt time",
+                outputs_t[layer].mean(),
+                timestep,
+            )
         if timestep % 50 == 0:
             for layer in range(exit_layer):
-                writer.add_scalar(f"UEM Classifier output at timestep {timestep} wrt layer", outputs_t[layer].mean(), layer + 1)
+                writer.add_scalar(
+                    f"UEM Classifier output at timestep {timestep} wrt layer",
+                    outputs_t[layer].mean(),
+                    layer + 1,
+                )
 
     for i, sample in enumerate(samples):
         writer.add_image(f"Sample {i + 1}", sample)

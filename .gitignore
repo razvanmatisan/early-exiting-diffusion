@@ -124,6 +124,7 @@ celerybeat.pid
 .venv
 env/
 venv/
+src/venv/
 ENV/
 env.bak/
 venv.bak/
@@ -164,3 +165,8 @@ checkpoints/
 .ruff_cache/
 /samples/
 /logs/
+
+src/logs/
+src/samples/
+src/checkpoints/
+src/data/

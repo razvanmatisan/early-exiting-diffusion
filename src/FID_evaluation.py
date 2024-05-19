@@ -2,15 +2,14 @@ import argparse
 import os
 
 import torch
+from datasets.cifar10 import get_cifar10_dataloader
+from models.early_exit import EarlyExitUViT
+from models.uvit import UViT
 from PIL import Image
 from torchmetrics.image.fid import FrechetInceptionDistance
 from torchvision import transforms
 from torchvision.datasets import CIFAR10
 from torchvision.utils import save_image
-
-from datasets.cifar10 import get_cifar10_dataloader
-from models.early_exit import EarlyExitUViT
-from models.uvit import UViT
 from utils.train_utils import (
     get_noise_scheduler,
     seed_everything,

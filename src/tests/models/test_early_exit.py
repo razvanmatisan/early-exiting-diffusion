@@ -1,5 +1,4 @@
 import torch
-
 from models.early_exit import AttentionProbe, EarlyExitUViT, OutputHead
 from models.uvit import UViT
 

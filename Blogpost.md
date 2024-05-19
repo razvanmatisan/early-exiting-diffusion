@@ -1,3 +1,5 @@
+### !!! Note: open thie file in VS Code or using https://hackmd.io/?nav=overview to properly see the equations.
+
 # DeeDiff: Dynamic Uncertainty-Aware Early Exiting For Accelerating Diffusion Model Generation
 **D. Gallo, R. Matisan, A. Monroy, J. Partyka, A. Vasilcoiu**
 ## Introduction

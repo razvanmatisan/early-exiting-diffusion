@@ -102,6 +102,13 @@ def get_args():
         help="True if we want to benchmark the sampler",
     )
 
+    # Train mode
+    parser.add_argument(
+        "--train_mode",
+        action="store_true",
+        help="True if we run the model in train mode",
+    )
+
     return parser.parse_args()
 
 
@@ -135,7 +142,6 @@ if __name__ == "__main__":
 
     model = EarlyExitUViT(uvit=uvit, exit_threshold=args.exit_threshold)
 
-    model = uvit
     if args.load_checkpoint_path:
         state_dict = torch.load(args.load_checkpoint_path, device)
         model.load_state_dict(state_dict["model_state_dict"])
@@ -143,11 +149,13 @@ if __name__ == "__main__":
         print("The loaded checkpoint path is wrong or not provided!")
         exit(1)
 
-    # model = model.eval()
+    model = model.eval()
     model = model.to(device)
 
     noise_scheduler = get_noise_scheduler(args)
 
+    mode = "train_mode" if args.train_mode else "inference_mode"
+    print(f"Sampling in {mode}...")
     ### Sampling
     samples, logging_dict = noise_scheduler.sample(
         model=model,
@@ -157,41 +165,35 @@ if __name__ == "__main__":
         seed=args.sample_seed,
         model_type=args.model,
         benchmarking=args.benchmarking,
+        train_mode=args.train_mode,
     )
 
     ### Logging
     ## Denoised images
     if model.training:
-        ### All predicted noises after each of the 13 layers.
-
-        # all_outputs = logging_dict["outputs"]
-
-        # for t, outputs_t in enumerate(all_outputs):
-        #     for i, batch in enumerate(outputs_t):
-        #         for k, img in enumerate(batch):
-        #             writer.add_image(
-        #                 f"Sample {k}: All outputs at timestep {t}", img, global_step=i
-        #             )
-
         ### Denoised images (using each of the noise outputed by each of the 13 layers)
+        print("Logging denoised images...")
         all_denoised_images = logging_dict["denoised_images"]
 
         for t, denoised_images_t in enumerate(all_denoised_images):
-            for i, batch in enumerate(denoised_images_t):
-                for k, img in enumerate(batch):
-                    writer.add_image(
-                        f"Sample {k}: Denoised images at timestep {t}",
-                        img,
-                        global_step=i,
-                    )
+            if (t + 1) % 50 == 0:
+                for i, batch in enumerate(denoised_images_t):
+                    for k, img in enumerate(batch):
+                        writer.add_image(
+                            f"Sample {k}: Denoised images at timestep {t}",
+                            img,
+                            global_step=i,
+                        )
 
     ## Benchmarking (Theoretical GFlops)
     if args.benchmarking:
+        print("Logging benchmark...")
         for time, gflops in sorted(logging_dict["benchmarking"], key=lambda x: x[0]):
             writer.add_scalar("benchmarking", gflops, time)
 
     ## UEM classifier outputs per timestep wrt layer
     classifier_outputs = logging_dict["classifier_outputs"]
+    print("Logging classifier outputs...")
     for timestep, outputs_t in enumerate(classifier_outputs):
         # if len(outputs_t) == 13:
         #     try:
@@ -203,7 +205,6 @@ if __name__ == "__main__":
         #         pass
         # else:
         #     exit_layer = len(outputs_t)
-
         exit_layer = (
             13
             if len(outputs_t) == 13 and torch.any(outputs_t[-1] > args.exit_threshold)
@@ -226,6 +227,11 @@ if __name__ == "__main__":
 
     ## Denoising over time
     samples_over_time = logging_dict["samples_over_time"]
+    print("Logging samples over time...")
     for t, samples in enumerate(samples_over_time):
         for i, sample in enumerate(samples):
-            writer.add_image(f"Sample {i} over time", sample, global_step=t)
+            writer.add_image(
+                f"Sample {i} over time using threshold {args.exit_threshold}",
+                sample,
+                global_step=t,
+            )

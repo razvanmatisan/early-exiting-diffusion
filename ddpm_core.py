@@ -114,6 +114,7 @@ class NoiseScheduler:
         seed,
         model_type,
         benchmarking=False,
+        train_mode=False,
         time_frequency=None,
         space_frequency=None,
         coordinates=None,
@@ -155,7 +156,8 @@ class NoiseScheduler:
                     )
                     eps = model(x_t, time_tensor)
                 elif model_type == "deediff_uvit":
-                    model.train()
+                    if train_mode:
+                        model.train()
                     t_normalized = t / num_steps
                     time_tensor = torch.tensor([t_normalized], device=device).repeat(
                         num_samples

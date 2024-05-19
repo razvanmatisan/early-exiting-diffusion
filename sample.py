@@ -79,6 +79,12 @@ def get_args():
         help="Checkpoint path for loading the training state",
     )
 
+    parser.add_argument(
+        "--keep_initial_timesteps",
+        action="store_true",
+        help="Using timesteps in [0, T] if True. Otherwise, normalize the timesteps in [0, 1]",
+    )
+
     # Model
     parser.add_argument(
         "--model",
@@ -166,6 +172,7 @@ if __name__ == "__main__":
         model_type=args.model,
         benchmarking=args.benchmarking,
         train_mode=args.train_mode,
+        keep_initial_timesteps=args.keep_initial_timesteps,
     )
 
     ### Logging

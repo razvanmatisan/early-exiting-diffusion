@@ -1,7 +1,17 @@
-### !!! Note: open thie file in VS Code or using https://hackmd.io/?nav=overview to properly see the equations.
+> :warning: Note: open thie file in VS Code or using https://hackmd.io/?nav=overview to properly see the equations.
 
 # DeeDiff: Dynamic Uncertainty-Aware Early Exiting For Accelerating Diffusion Model Generation
 **D. Gallo, R. Matisan, A. Monroy, J. Partyka, A. Vasilcoiu**
+<!-- > **CHRISTOS' INSTRUCTIONS:**
+>The blogpost should be a markdown file of roughly 20 mins of reading (you can calculate that using this app: https://niram.org/read/). In a similar fashion to a paper, though feel free to be creative as long as the main take-home messages are clear and it contains the following components:
+>- Introduction: An analysis of the paper and its key components. Think about it as a nicely formatted review as you would see on OpenReview.net. It should contain one paragraph of related work as well.
+>- Exposition of its weaknesses/strengths/potential which triggered your group to come up with a response.
+>- Describe your novel contribution.
+>- Results of your work (link that part with the code in the jupyter notebook)
+Conclude
+>- Close the notebook with a description of each student's contribution.
+>
+>If you need to include an appendix you can in either a pdf format or additional Appendix chapter in your blog. That extra material should be only related to supplementary experiments or clarification and not core information about the project. -->
 ## Introduction
 
 This project delves into and extends upon the discoveries presented in the paper ["DeeDiff: Dynamic Uncertainty-Aware Early Exiting For Accelerating Diffusion Model Generation"](https://arxiv.org/abs/2309.17074). This work proposes an early exiting framework to improve the generation speed of diffusion models, based on a timestep-aware uncertainty estimation module attached to each intemediate layer, as well as based on an uncertainty-aware layer-wise loss.
@@ -109,9 +119,9 @@ L_{\text {all }}=\mathcal{L}_{\text {simple }}^{t}(\theta)+\lambda \mathcal{L}_{
 ## Novel contributions
 
 We can summarize our novel contributions as follows:
-- As per Equation 5 above, we know that in the original paper, the classifier is implemented as a linear layer. However, this will produce an uncertainty  
+- As per Equation 5 above, we know that in the original paper, the classifier is implemented as a linear layer. However, this layer will be applied to every patch independently (the patches will not talk to one another), and we will have to aggregate the uncertainties in order to take a decision (whether or not to exit). As an alternative, we propose using an attention probe, which is more powerful, although more computationally expensive. 
 - In order to reduce the number of parameters and improve the training speed, we have used a single shared classifier for all timesteps and have instead injected the time information in the input embedding. 
-- We have added a 4th component to the model's loss consisting of the UAL loss from Equation 8 without the uncertainty weighting $(1 - u_{i,t})$. The motivation behind this is to prevent the model from learning to generate bad-quality outputs (which imply an uncertainty $u_{i,t}$ close to $1$) to minimize $\mathcal L_{UAL}^t$.
+- We have added a 4th component to the model's loss consisting of the UAL loss from Equation 8 without the uncertainty weighting $(1 - u_{i,t})$. The motivation behind this is that the model could learn to generate garbage and predict "exit" all the time, as this minimizes both $\mathcal{L}_u^t$ and $\mathcal{L}_\text{UAL}^t$ simultaneously. 
 - As a minor addition, in each time step, we apply the uncertainty classifier to the inputs, instead of the outputs of each transformer block (including the first one). This ensures that the model is not only able to early-exit, but to also skip steps entirely.
 
 
@@ -138,9 +148,10 @@ In terms of early-exiting trends, we observed that both approaches, namely train
 
 However, for the model with 3 losses, we observed that it early-exits before layer 4 during the first approximately 250 steps, while it performs a full computation for the other timesteps, with no other in-between exit layers. We observe roughly the same trend for the model trained with the additional loss, but with some other early-exit layers too for the first few generation steps, which can be visualized in Figure 1.
 
+
 <table align="center">
   <tr align="center">
-      <td><img src="https://hackmd.io/_uploads/SkneUiD7A.svg" width=800></td>
+      <td><img src="https://hackmd.io/_uploads/H1Yh6CPmR.svg" width=800></td>
   </tr>
   <tr align="left">
     <td colspan=2><b>Figure 1.</b> Early-exit layers for different thresholds with respect to timesteps. </td>
@@ -203,12 +214,12 @@ Below, some results of comparing 10 generated images with original CIFAR-10 data
 
 ## Conclusion
 
-<!-- ## Contributions
-- Daniel: vizz guy
+## Contributions
+- Daniel:
 - Razvan:
 - Alejandro:
 - Janusz: 
-- Ana: -->
+- Ana:
 
 ## Bibliography
 [0] Ho, Jonathan, Ajay Jain, and Pieter Abbeel. "Denoising diffusion probabilistic models." Advances in neural information processing systems 33 (2020): 6840-6851.

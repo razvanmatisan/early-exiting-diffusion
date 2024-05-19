@@ -3,7 +3,7 @@
 start_seed=1
 end_seed=10
 exit_threshold=0.125
-load_checkpoint_path="logs/6266130/cifar10_deediff_uvit.pth"
+load_checkpoint_path="src/logs/6266130/cifar10_deediff_uvit.pth"
 model="deediff_uvit"
 cmmd_batch_size=32
 cmmd_max_count=10

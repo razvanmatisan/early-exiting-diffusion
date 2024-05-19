@@ -84,7 +84,7 @@ def get_args():
     parser.add_argument(
         "--exit_threshold",
         type=float,
-        default=0.1,
+        default=-np.inf,
         help="Early exit threshold",
     )
 
